@@ -110,41 +110,37 @@ find_optimal_cutoff <- function(true_labels, predicted_probs) {
   return(coords["threshold"])
 }
 
-# Assuming you have the predicted probabilities for each model and true labels for train and test data
-# Replace 'mytraindata$Class' and 'mytestdata$Class' with your actual labels
 train_labels <- mytraindata$Class
 test_labels <- mytestdata$Class
 
-rob_preds_train <- predict(rob_glm, newdata = mytraindata, type = "response")
-log_preds_train <- predict(log_glm, newdata = mytraindata, type = "response")
-rob_trunc_preds_train <-predict(rob_glm_truncated, newdata = mytraindata, type = "response")
-log_trunc_preds_train <- predict(log_glm_truncated, newdata = mytraindata, type = "response")
+rob_probs_preds_train <- predict(rob_glm, newdata = mytraindata, type = "response")
+log_probs_preds_train <- predict(log_glm, newdata = mytraindata, type = "response")
+rob_probs_trunc_preds_train <-predict(rob_glm_truncated, newdata = mytraindata, type = "response")
+log_probs_trunc_preds_train <- predict(log_glm_truncated, newdata = mytraindata, type = "response")
 
 # Find optimal cutoff points for each model on the training data
-optimal_cutoff_rob_glm <- find_optimal_cutoff(train_labels, rob_preds_train)
-optimal_cutoff_log_glm <- find_optimal_cutoff(train_labels, log_preds_train)
-optimal_cutoff_rob_glm_truncated <- find_optimal_cutoff(train_labels, rob_trunc_preds_train)
-optimal_cutoff_log_glm_truncated <- find_optimal_cutoff(train_labels, log_trunc_preds_train)
+optimal_cutoff_rob_glm <- find_optimal_cutoff(train_labels, rob_probs_preds_train)
+optimal_cutoff_log_glm <- find_optimal_cutoff(train_labels, log_probs_preds_train)
+optimal_cutoff_rob_glm_truncated <- find_optimal_cutoff(train_labels, rob_probs_trunc_preds_train)
+optimal_cutoff_log_glm_truncated <- find_optimal_cutoff(train_labels, log_probs_trunc_preds_train)
 
 # Function to apply cutoff and classify probabilities
 apply_cutoff <- function(probabilities, cutoff) {
   return(as.numeric(probabilities > cutoff))
-  
-  #return(ifelse(c(probabilities) >= cutoff, 1, 0))
 }
 
 
-rob_preds_test <- predict(rob_glm, newdata = mytestdata, type = "response")
-log_preds_test <- predict(log_glm, newdata = mytestdata, type = "response")
-rob_trunc_preds_test <-predict(rob_glm_truncated, newdata = mytestdata, type = "response")
-log_trunc_preds_test <- predict(log_glm_truncated, newdata = mytestdata, type = "response")
+rob_prob_preds_test <- predict(rob_glm, newdata = mytestdata, type = "response")
+log_prob_preds_test <- predict(log_glm, newdata = mytestdata, type = "response")
+rob_trunc_prob_preds_test <-predict(rob_glm_truncated, newdata = mytestdata, type = "response")
+log_trunc_prob_preds_test <- predict(log_glm_truncated, newdata = mytestdata, type = "response")
 
 
 # Apply optimal cutoff to test data predictions
-test_predictions_rob_glm <- apply_cutoff(rob_preds_test, optimal_cutoff_rob_glm$threshold)
-test_predictions_log_glm <- apply_cutoff(log_preds_test, optimal_cutoff_log_glm$threshold)
-test_predictions_rob_glm_truncated <- apply_cutoff(rob_trunc_preds_test, optimal_cutoff_rob_glm_truncated$threshold)
-test_predictions_log_glm_truncated <- apply_cutoff(log_trunc_preds_test, optimal_cutoff_log_glm_truncated$threshold)
+test_predictions_rob_glm <- apply_cutoff(rob_prob_preds_test, optimal_cutoff_rob_glm$threshold)
+test_predictions_log_glm <- apply_cutoff(log_prob_preds_test, optimal_cutoff_log_glm$threshold)
+test_predictions_rob_glm_truncated <- apply_cutoff(rob_trunc_prob_preds_test, optimal_cutoff_rob_glm_truncated$threshold)
+test_predictions_log_glm_truncated <- apply_cutoff(log_trunc_prob_preds_test, optimal_cutoff_log_glm_truncated$threshold)
 
 # Evaluate performance on test data
 test_auc_rob_glm <- roc(test_labels, test_predictions_rob_glm)$auc
